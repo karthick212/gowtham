@@ -22,7 +22,6 @@ config.connect(function(err) {
       app.use(cors());
       app.use('/api', masterRoutes);
       const port = process.env.PORT || 4000;
-
       const server = app.listen(port, function(){
         console.log('Listening on port ' + port);
       });

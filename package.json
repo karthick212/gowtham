@@ -1,0 +1,35 @@
+{
+  "name": "amazon",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "globalize": "^1.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "multer": "^1.4.2",
+    "multer-ftp": "^1.2.0",
+    "multer-sftp": "^1.1.1",
+    "mysql": "^2.18.1",
+    "queue": "^6.0.1",
+    "react-widgets": "^5.0.0-beta.21",
+    "request": "^2.88.2",
+    "ssh2-sftp-client": "^5.3.1"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

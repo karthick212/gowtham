@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 SECRET_KEY = "thisismysecretkey";
+var moment = require('moment')
 var multer = require('multer')
 var sftpStorage = require('multer-sftp')
 var FTPStorage = require('multer-ftp')
@@ -39,8 +40,107 @@ const common = require('../controller/common-Controller')
 //     cb(null, file.fieldname + '-' + Date.now())
 //   }
 // })
+router.get('/hitsyearwise', (req, res, err) => {
+  let data = req.query
+  let cond = ""
+  let param = []
+  if (data.email !== undefined) {
+    cond = " and email=? "
+    param = [data.email]
+  }
+  var qry = "select * from vw_hitsyearwise where email<>''" + cond;
+  common.QueryExecute(qry, param).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+router.get('/hitsoverview', (req, res, err) => {
+  let data = req.query
+  let cond = ""
+  let param = []
+  if (data.email !== undefined) {
+    cond = " and email=? "
+    param = [data.email]
+  }
+  var qry = "select * from vw_hitsoverview where email<>''" + cond;
+  common.QueryExecute(qry, param).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+router.get('/availableearnings', (req, res, err) => {
+  let data = req.query
+  let cond = ""
+  let param = []
+  if (data.email !== undefined) {
+    cond = " and email=? "
+    param = [data.email]
+  }
+  var todate = moment().format("YYYY-MM-DD")
+  var qry = "select  email,earnings from vw_overviewdate where date<='" + todate + "'" + cond;
+  common.QueryExecute(qry, param).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.json(err)
+  })
+});
 
 // var upload = multer({ storage: storage })
+router.get('/overview', (req, res, err) => {
+  let data = req.query
+  let cond = ""
+  let param = []
+  if (data.email !== undefined) {
+    cond = " and email=? "
+    param = [data.email]
+  }
+  var todate = moment().format("YYYY-MM-DD")
+  var qry = "select email,date_format(date,'%d/%m/%Y') date,isAccept,isReject,isPending,reward,earnings from vw_overviewdate where date<='" + todate + "' and email='' and email not in ('" + data.email + "') union all select email,date_format(date,'%d/%m/%Y') date,isAccept,isReject,isPending,reward,earnings from vw_overviewdate where date<='" + todate + "'" + cond + " order by date desc";
+  common.QueryExecute(qry, param).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+
+//Userwork
+router.get('/userWorks', (req, res, err) => {
+  let data = req.query
+  let cond = ""
+  let param = []
+  if (data.email !== undefined && data.filepath !== undefined) {
+    cond = " and email=? and filepath=?"
+    param = [data.email, data.filepath]
+  }
+  common.QueryExecute("select * from tbluserwork where isActive<>0" + cond, param).then(result => {
+    res.json(result);
+  }).catch(err => {
+    res.json(err)
+  })
+});
+
+router.post('/userWorks/Add', (req, res, err) => {
+  let val = req.body;
+  let date = moment().format('YYYY-MM-DD');
+  let time = moment().format('YYYY-MM-DD HH:mm:ss');
+  let qry = "INSERT INTO `tbluserwork` (`email`, `requesterid`, `reward`, `filename`, `filepath`, `entertext`, `isAccept`, `isReject`, `isPending`, `date`, `time`, `isActive`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  let param = [val.email, val.requesterid, val.reward, val.filename, val.filepath, val.entertext, 1, 0, 0, date, time, 1]
+
+  common.QueryExecute(qry, param).then(result => {
+    let id = result.data.insertId
+    common.LogData(val.userid, 'userWorks', id, 'Add').then(res1 => {
+      res.json(result);
+    })
+  }).catch(err => {
+    console.log('err', err)
+  })
+});
+
 //Hits
 router.get('/Hits', (req, res, err) => {
   let data = req.query
@@ -88,7 +188,7 @@ router.post('/Works/Add', (req, res, err) => {
       res.json(result);
     })
   }).catch(err => {
-    console.log('err',err)
+    console.log('err', err)
   })
 });
 
@@ -181,11 +281,11 @@ router.get('/Users', (req, res, err) => {
   let data = req.query
   let cond = ""
   let param = []
-  if (req.query.id == undefined) {
+  if (req.query.id !== undefined) {
     cond = " and id=?"
     param = [data.id]
   }
-  if (req.query.email == undefined) {
+  if (req.query.email !== undefined) {
     cond = " and Email=?"
     param = [data.email]
   }
@@ -199,8 +299,9 @@ router.get('/Users', (req, res, err) => {
 router.post('/Users/Add', (req, res, err) => {
   let val = req.body;
   let todate = common.todaydate();
-  let qry = "INSERT INTO `tblusers` (`Name`, `Email`, `Password`, `isActive`, `Sdate`) VALUES (?, ?, ?, ?, ?);"
-  let param = [val.username, val.email, val.password, 1, todate]
+  let wid = shuffle(20)
+  let qry = "INSERT INTO `tblusers` (`Name`, `Email`, `Password`,`Mobile`, `isActive`, `Sdate`, WorkerID) VALUES (?, ?, ?, ?, ?, ?, ?);"
+  let param = [val.username, val.email, val.password, val.mobile, 1, todate, wid]
 
   common.QueryExecute(qry, param).then(result => {
     let id = result.data.insertId
@@ -243,8 +344,10 @@ router.post("/login", (req, res) => {
     if (result.data.length > 0) {
       let userdata = result.data[0]
       resMsg.userid = userdata.id
-      resMsg.email = val.email
-      resMsg.mobile = userdata.mobile
+      resMsg.email = val.Email
+      resMsg.mobile = userdata.Mobile
+      resMsg.name = userdata.Name
+      resMsg.workerid = userdata.WorkerID
 
       res.json({ status: 'success', data: resMsg });
     }
@@ -280,5 +383,27 @@ function verifyToken(req, res, next) {
   else {
     res.json({ status: 'failed', data: 'Token failed' });
   }
+}
+function random_strings($length_of_string) {
+  // String of all alphanumeric character 
+  $str_result = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+  // Shufle the $str_result and returns substring 
+  // of specified length 
+  return substring(str_shuffle($str_result),
+    0, $length_of_string);
+}
+function shuffle(leng) {
+  var result='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  var parts = result.split('');
+  var arr=[]
+  for (var i = leng; i > 0;) {
+      var random = parseInt(Math.random() * result.length);
+      var temp = parts[--i];
+      parts[i] = parts[random];
+      parts[random] = temp;
+  }
+  arr=parts.slice(0,leng)
+  return arr.join('');
 }
 module.exports = router;

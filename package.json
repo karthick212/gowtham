@@ -8,6 +8,7 @@
     "express": "^4.17.1",
     "globalize": "^1.6.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
     "multer": "^1.4.2",
     "multer-ftp": "^1.2.0",
     "multer-sftp": "^1.1.1",
@@ -16,6 +17,9 @@
     "react-widgets": "^5.0.0-beta.21",
     "request": "^2.88.2",
     "ssh2-sftp-client": "^5.3.1"
+  },
+  "scripts": {
+    "dev": "nodemon server.js"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -31,5 +35,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6"
   }
 }

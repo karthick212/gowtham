@@ -1,10 +1,10 @@
 const common = require('../controller/common-Controller')
 
 var masterController = {
-  EmployeeSerial(){
-    let qry="select ifnull(max(employeeserial),0)+1 as id from tblemployees";
-    return common.QueryExecute(qry).then(res=>{
-        return res.data[0].id;
+  workSerial(email){
+    let qry="select ifnull(max(workserial),0)+1 as workserial from tbluserwork where email=?";
+    return common.QueryExecute(qry,[email]).then(res=>{
+        return res.data[0].workserial;
       }).catch(err=>{
         console.log(err)
       })

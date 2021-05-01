@@ -13,6 +13,7 @@
     "multer-ftp": "^1.2.0",
     "multer-sftp": "^1.1.1",
     "mysql": "^2.18.1",
+    "node-cron": "^2.0.3",
     "queue": "^6.0.1",
     "react-widgets": "^5.0.0-beta.21",
     "request": "^2.88.2",
